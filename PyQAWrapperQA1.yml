@@ -1,0 +1,26 @@
+name: PyQAWrapperQA1
+channels:
+  - conda-forge
+  - anaconda
+  - defaults
+dependencies:
+  - python=3.9
+  - nltk
+  - tqdm
+  - pandas==1.4.2
+  - pip
+  - pip:
+    - torch==2.0.*
+    - transformers==4.34.0
+    - pyyaml
+    - unidecode
+    - SPARQLWrapper==2.0.0
+    - python-dateutil
+    - Werkzeug==2.3.7
+    - requests
+    - requests_toolbelt
+    - git+https://github.com/csse-uoft/owlready2.git
+    - git+https://github.com/csse-uoft/graphdb-importer
+    - git+https://github.com/csse-uoft/py2graphdb.git
+    - git+https://github.com/csse-uoft/QAWrapper.git
+    - git+https://github.com/csse-uoft/smile-base.git
