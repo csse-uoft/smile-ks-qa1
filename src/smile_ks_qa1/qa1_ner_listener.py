@@ -22,6 +22,7 @@ with smile:
     from smile_base.Model.controller.ks import Ks
     from smile_base.Model.controller.ks_ar import KSAR
     from smile_base.Model.controller.trace import Trace
+    from smile_ks_qa1.utils import add_ks
 
 from py2graphdb.ontology.operators import *
 
@@ -212,7 +213,7 @@ class Qa1Ner(KnowledgeSource):
 
 
 if __name__ == '__main__':
-    print('Qa1Ner script started')
+    add_ks.add_ks()
 
     with smile:
         Qa1Ner.process_ks_ars(loop=True)

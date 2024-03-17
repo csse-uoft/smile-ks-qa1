@@ -41,3 +41,8 @@ A few notes on configurting SMILE to connect to the database.
 `cd src`
 `python -m smile_ks_qa1.main`
 
+
+## To run KnowledgeSource Listener
+`conda activate PyQAWrapperQA1`
+`cd src`
+`python -m smile_ks_qa1.qa1_ner_listener`
