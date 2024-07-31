@@ -54,10 +54,11 @@ class Qa1Ner(KnowledgeSource):
         run the model to get the formatted outputs
 
     """
-
+    current_trace = None
+    current_ks_ar = None
 
     MAPPINGS = {
-        Organization          : 'program_name',
+        # Organization          : 'program_name',
         Program               : 'program_name',
         # Client                : 'client',
         BeneficialStakeholder : 'client',
@@ -103,7 +104,10 @@ class Qa1Ner(KnowledgeSource):
                 continue
 
             print(f"Processing ks_ar with id: {ks_ar.id}")
-
+            # Get the trace from the ks_ar
+            trace = Trace(inst_id=ks_ar.trace)
+            cls.current_trace = trace
+            cls.current_ks_ar = ks_ar
             # Get the hypothesis ids from the ks_ar
             in_hypo_ids = ks_ar.input_hypotheses
 
@@ -117,13 +121,10 @@ class Qa1Ner(KnowledgeSource):
                 if isinstance(in_hypo, (smile.Sentence, smile.Text)): #check if Phrase
                     content_hypo = in_hypo
                 elif type(in_hypo) in cls.MAPPINGS.keys(): #check if Concept
-                    cls.MAPPINGS[type(in_hypo)]
                     concept_hypo = in_hypo
             if concept_hypo is None or content_hypo is None:
                 raise(Exception(f"Bad Input Hypothesis Type {[type(in_hypo) for in_hypo in in_hypos]}"))
             
-            # Get the trace from the ks_ar
-            trace = Trace(inst_id=ks_ar.trace)
             
             # Construct an instance of the ks_object
             ks_object = cls(hypothesis_ids=in_hypo_ids, ks_ar=ks_ar, trace=trace)
@@ -160,7 +161,8 @@ class Qa1Ner(KnowledgeSource):
             ks_ar.summary(filename=filename)
 
             ks_ar.ks_status = 3
-
+            cls.current_trace = None
+            cls.current_ks_ar = None
             if not loop:
                 return ks_ar
                 
@@ -194,13 +196,13 @@ class Qa1Ner(KnowledgeSource):
                 start = res_qa1["start"]
                 end = res_qa1["end"]
                 certainty = res_qa1["score"]
-                if certainty > 0:
+                if round(certainty,3) > 0:
                     phrase = Phrase.find_generate(
                         content=text, start=start, end=end,trace_id=self.trace.id, certainty=certainty)
                     phrase.from_ks_ars = self.ks_ar.id
 
                     klass = [k for k,v in self.MAPPINGS.items() if v == out_entity][0]
-                    concept = klass.generate(phrase_id=phrase.id, trace_id=self.trace.id, certainty=certainty)
+                    concept = klass.find_generate(phrase_id=phrase.id, trace_id=self.trace.id, certainty=certainty)
                     concept.from_ks_ars = self.ks_ar.id
                     phrase.concepts = concept.id
                     self.store_hypotheses.append(phrase)
@@ -213,7 +215,26 @@ class Qa1Ner(KnowledgeSource):
 
 
 if __name__ == '__main__':
-    add_ks.add_ks()
+    print('Qa1Ner script started')
+    add_ks.add_ks(reload_db=False)
+    print('Qa1Ner script ready')
 
     with smile:
-        Qa1Ner.process_ks_ars(loop=True)
+        while True:
+            try:
+                Qa1Ner.process_ks_ars(loop=True)
+            except KeyboardInterrupt:
+                print('interrupted!')
+                break
+            except Exception as e:
+                print(f"{type(e)}: {e}")
+                if Qa1Ner.current_ks_ar is not None:
+                    failed_ks_ar = Qa1Ner.current_ks_ar
+                    org_status = failed_ks_ar.ks_status
+                    failed_ks_ar.ks_status = -1
+                    failed_ks_ar.save()
+                    error_message = f"Failed KSAF: {failed_ks_ar} with ks_status={org_status}"
+                    print(error_message)
+                if Qa1Ner.current_trace is not None:
+                    Qa1Ner.logger(trace_id=Qa1Ner.current_trace, text=error_message)
+                pass

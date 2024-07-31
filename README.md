@@ -45,4 +45,4 @@ A few notes on configurting SMILE to connect to the database.
 ## To run KnowledgeSource Listener
 `conda activate PyQAWrapperQA1`
 `cd src`
-`python -m smile_ks_qa1.qa1_ner_listener`
+`python -m smile_ks_qa1.listener`

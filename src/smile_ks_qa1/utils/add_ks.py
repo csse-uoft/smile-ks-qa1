@@ -6,29 +6,22 @@ smile = default_world.get_ontology(CONFIG.NM)
 with smile:
     from smile_base.Model.controller.ks import Ks
 
-def add_ks():
+def add_ks(reload_db=True):
+    if reload_db:
+        kss = Ks.search(props={smile.hasPyName:'Qa1Ner'}, how='all')
+        for ks in kss:
+            ks.delete(refs=False)
+
     ALL_KS_FORMATS = {}
-    ALL_KS_FORMATS['QA-1 (Organization,Text)(Program)'] = ['Qa1Ner', False, ["Text", "Organization"], ["Program"]]
-    ALL_KS_FORMATS['QA-1 (Organization,Sentence)(Program)'] = ['Qa1Ner', False, ["Sentence", "Organization"], ["Program"]]
-    ALL_KS_FORMATS['QA-1 (Organization,Text)(BeneficialStakeholder)'] = ['Qa1Ner', False, ["Text", "Organization"], ["BeneficialStakeholder"]]
-    ALL_KS_FORMATS['QA-1 (Organization,Sentence)(BeneficialStakeholder)'] = ['Qa1Ner', False, ["Sentence", "Organization"], ["BeneficialStakeholder"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Organization)(Client)'] = ['Qa1Ner_Organization_Client', False, ["Text", "Sentence", "Organization"], ["Client"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Organization)(BeneficialStakeholder)'] = ['Qa1Ner_Organization_BeneficialStakeholder', False, ["Text", "Sentence", "Organization"], ["BeneficialStakeholder"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Organization)(Outcome)'] = ['Qa1Ner_Organization_Outcome', False, ["Text", "Sentence", "Organization"], ["Outcome"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Organization)(CatchmentArea)'] = ['Qa1Ner_Organization_CatchmentArea', False, ["Text", "Sentence", "Organization"], ["CatchmentArea"]]
-
-
-    ALL_KS_FORMATS['QA-1 (Program,Text)(Organization)'] = ['Qa1Ner', False, ["Text", "Program"], ["Organization"]]
-    ALL_KS_FORMATS['QA-1 (Program,Sentence)(Organization)'] = ['Qa1Ner', False, ["Sentence", "Program"], ["Organization"]]
-    ALL_KS_FORMATS['QA-1 (Program,Text)(BeneficialStakeholder)'] = ['Qa1Ner', False, ["Text", "Program"], ["BeneficialStakeholder"]]
-    ALL_KS_FORMATS['QA-1 (Program,Sentence)(BeneficialStakeholder)'] = ['Qa1Ner', False, ["Sentence", "Program"], ["BeneficialStakeholder"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Program)(Client)'] = ['Qa1Ner_Program_Client', False, ["Text", "Sentence", "Program"], ["Client"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Program)(BeneficialStakeholder)'] = ['Qa1Ner_Program_BeneficialStakeholder', False, ["Text", "Sentence", "Program"], ["BeneficialStakeholder"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Program)(Outcome)'] = ['Qa1Ner_Program_Outcome', False, ["Text", "Sentence", "Program"], ["Outcome"]]
-    # Ks.ALL_KS_FORMATS['QA-1 (Program)(CatchmentArea)'] = ['Qa1Ner_Program_CatchmentArea', False, ["Text", "Sentence", "Program"], ["CatchmentArea"]]
+    ALL_KS_FORMATS = {}
+    for klass0 in ['Service', 'Outcome', 'BeneficialStakeholder']:
+        for klass1 in ['Service', 'Outcome', 'BeneficialStakeholder']:
+            if klass0 != klass1:
+                ALL_KS_FORMATS[f'QA-1 ({klass0},Sentence)({klass1})'] = ['Qa1Ner', False, ["Sentence", klass0], [klass1]]
 
     for ks_name, fields in ALL_KS_FORMATS.items():
         Ks.ALL_KS_FORMATS[ks_name] = fields
-    for ks_name in ALL_KS_FORMATS.keys():
-        Ks.initialize_ks(ks_name)
+    if reload_db:
+        for ks_name in ALL_KS_FORMATS.keys():
+            Ks.initialize_ks(ks_name)
 
