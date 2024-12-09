@@ -1,4 +1,4 @@
-import re, os, tqdm
+import re, os, tqdm, pprint
 from owlready2 import default_world, onto_path, ObjectProperty, DataProperty, rdfs, Thing 
 onto_path.append('./ontology_cache/')
 from py2graphdb.config import config as CONFIG
@@ -10,6 +10,7 @@ with smile:
     from smile_base.Model.knowledge_source.knowledge_source import KnowledgeSource
     from qawrapper.qa1 import QA1
     from smile_base.Model.data_level.cids.organization import Organization
+    from smile_base.Model.data_level.cids.service import Service
     from smile_base.Model.data_level.cids.program import Program
     from smile_base.Model.data_level.cids.beneficial_stakeholder import BeneficialStakeholder
     from smile_base.Model.data_level.cids.outcome import Outcome
@@ -60,6 +61,7 @@ class Qa1Ner(KnowledgeSource):
     MAPPINGS = {
         # Organization          : 'program_name',
         Program               : 'program_name',
+        Service               : 'need_satisfier',
         # Client                : 'client',
         BeneficialStakeholder : 'client',
         # NeedSatisfier         : 'need_satisfier',
@@ -158,7 +160,7 @@ class Qa1Ner(KnowledgeSource):
 
             LOG_FILE_TEMPLATE = CONFIG.LOG_DIR+'smile_trace_log.txt'
             filename = LOG_FILE_TEMPLATE.replace('.txt', f"_{trace.id}.txt")
-            ks_ar.summary(filename=filename)
+            ks_ar.summary(filename=filename, method_info=ks_object.method_info)
 
             ks_ar.ks_status = 3
             cls.current_trace = None
@@ -176,12 +178,16 @@ class Qa1Ner(KnowledgeSource):
         self.qa1s = {}
         self.output_results = []
         self.description = description
+        self.method_info = ''
         in_entity = self.MAPPINGS[input_klass]
         out_entity = self.MAPPINGS[output_klass]
-        res_qa1 = QA1(context=description, out_entity=out_entity)
-        res_qa1.update_given_ner(in_entity=in_entity, givens={in_content:in_hypo.certainty})
+        qa_instance = QA1(context=description, out_entity=out_entity)
+        qa_instance.update_given_ner(in_entity=in_entity, givens={in_content:in_hypo.certainty})
 
-        self.output_results.append(res_qa1.run_qa(ner=False))
+        qa_res = qa_instance.run_qa()
+        self.method_info += f"Input ID:\t{in_hypo.id.split('-')[0]}\n" + f"\tClass:\t{in_hypo.klass}\n" + f"\tInfo:\t{in_hypo.show()}\n"+f"\tCertainty:\t{round(in_hypo.certainty,5) if in_hypo.certainty == in_hypo.certainty else in_hypo.certainty}" + "\n"
+        self.method_info += pprint.pformat(qa_instance.QAs) + "\n"
+        self.output_results.append(qa_res)
 
         return self.output_results
 

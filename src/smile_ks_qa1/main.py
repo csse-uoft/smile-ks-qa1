@@ -22,7 +22,11 @@ def gen_ksar(hypothesis:Hypothesis, output, trace:Trace):
              res = SPARQLDict._process_path_request(start=sentence, end=ks_input, action='collect', direction='children', how='all', infer=True)
              if len(res)>0:
                  matches[ks_input] = [r['path'][-1] for r in res]
-        if len(set(targets.keys())).intesection(matches) == len(targets.keys()):
+        print(">>>>")
+        from pprint import pprint
+        pprint(targets)
+        pprint(matches)
+        if len(set(targets).intersection(matches.keys())) == len(targets):
             for inputs in itert.product(*matches.values()):
                 ks_ar = KSAR()
                 ks_ar.keep_db_in_synch = False
@@ -40,9 +44,9 @@ def gen_ksar(hypothesis:Hypothesis, output, trace:Trace):
 
 smile = default_world.get_ontology(CONFIG.NM)
 with smile:
-    init_db.init_db()
-    add_ks.add_ks()
-    init_db.load_owl('./ontology_cache/cids.ttl')
+    # init_db.init_db()
+    add_ks.add_ks(reload_db=False)
+    # init_db.load_owl('./ontology_cache/cids.ttl')
 
     description = "St.Mary's Church provides hot meals and addiction support to homeless youth. Their services are offered to those living in downtown Toronto. Family services are provided to homeless families. These include housing supports and family care. Only families living in the west side of the city are eligible."
     trace = Trace(keep_db_in_synch=True)

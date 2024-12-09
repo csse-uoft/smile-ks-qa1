@@ -14,7 +14,7 @@ def add_ks(reload_db=True):
 
     ALL_KS_FORMATS = {}
     ALL_KS_FORMATS = {}
-    for klass0 in ['Service', 'Outcome', 'BeneficialStakeholder']:
+    for klass0 in ['Service', 'Outcome', 'BeneficialStakeholder', 'Program']:
         for klass1 in ['Service', 'Outcome', 'BeneficialStakeholder']:
             if klass0 != klass1:
                 ALL_KS_FORMATS[f'QA-1 ({klass0},Sentence)({klass1})'] = ['Qa1Ner', False, ["Sentence", klass0], [klass1]]
