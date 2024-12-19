@@ -10,6 +10,10 @@ from py2graphdb.ontology.namespaces import ic, geo, cids, org, time, schema, sch
 from py2graphdb.ontology.operators import *
 from smile_base.utils import init_db
 import itertools as itert
+
+from smile_base.Model.data_level.org_certainty import OrgCertainty
+from smile_base.Model.data_level.phrase import Phrase
+
 if not os.path.exists(CONFIG.LOG_DIR):
     os.makedirs(CONFIG.LOG_DIR)
 
@@ -45,7 +49,7 @@ def gen_ksar(hypothesis:Hypothesis, output, trace:Trace):
 smile = default_world.get_ontology(CONFIG.NM)
 with smile:
     # init_db.init_db()
-    add_ks.add_ks(reload_db=False)
+    add_ks.add_ks(reload_db=True)
     # init_db.load_owl('./ontology_cache/cids.ttl')
 
     description = "St.Mary's Church provides hot meals and addiction support to homeless youth. Their services are offered to those living in downtown Toronto. Family services are provided to homeless families. These include housing supports and family care. Only families living in the west side of the city are eligible."

@@ -16,6 +16,7 @@ with smile:
     from smile_base.Model.data_level.cids.outcome import Outcome
     # from smile_base.Model.data_level.CatchmentArea"         : 'catchment_area',
 
+    from smile_base.Model.data_level.org_certainty import OrgCertainty
     from smile_base.Model.data_level.phrase import Phrase
     from smile_base.Model.data_level.text import Text
     from smile_base.Model.data_level.sentence import Sentence
@@ -201,16 +202,21 @@ class Qa1Ner(KnowledgeSource):
                 text = res_qa1["answer"]
                 start = res_qa1["start"]
                 end = res_qa1["end"]
-                certainty = res_qa1["score"]
-                if round(certainty,3) > 0:
+                new_certainty = res_qa1["score"]
+                if round(new_certainty,3) > 0:
                     phrase = Phrase.find_generate(
-                        content=text, start=start, end=end,trace_id=self.trace.id, certainty=certainty)
+                        content=text, start=start, end=end,trace_id=self.trace.id, certainty=new_certainty)
                     phrase.from_ks_ars = self.ks_ar.id
 
                     klass = [k for k,v in self.MAPPINGS.items() if v == out_entity][0]
-                    concept = klass.find_generate(phrase_id=phrase.id, trace_id=self.trace.id, certainty=certainty)
+                    concept = klass.find_generate(phrase_id=phrase.id, trace_id=self.trace.id, certainty=new_certainty)
                     concept.from_ks_ars = self.ks_ar.id
                     phrase.concepts = concept.id
+
+                    org_certainty = OrgCertainty.generate(hypothesis_id=concept.id, ks_ar_id = self.ks_ar.id, trace_id=self.trace.id, certainty=new_certainty)
+                    self.ks_ar.org_certainties = org_certainty.id
+                    concept.org_certainties = org_certainty.id
+
                     self.store_hypotheses.append(phrase)
                     self.store_hypotheses.append(concept)
 
@@ -239,7 +245,7 @@ if __name__ == '__main__':
                     org_status = failed_ks_ar.ks_status
                     failed_ks_ar.ks_status = -1
                     failed_ks_ar.save()
-                    error_message = f"Failed KSAF: {failed_ks_ar} with ks_status={org_status}"
+                    error_message = f"Failed KSAF(Qa1Ner, cycle={failed_ks_ar.cycle})): {failed_ks_ar} with ks_status={org_status}"
                     print(error_message)
                 if Qa1Ner.current_trace is not None:
                     Qa1Ner.logger(trace_id=Qa1Ner.current_trace, text=error_message)
